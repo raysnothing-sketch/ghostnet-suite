@@ -27,6 +27,9 @@ import { Sidebar, type View } from "./components/Sidebar";
 import { ShareDialog } from "./components/ShareDialog";
 import { CsvImport } from "./components/CsvImport";
 import { AntidetectImport } from "./components/AntidetectImport";
+import { Dashboard } from "./components/Dashboard";
+import { NetworkControl } from "./components/NetworkControl";
+import { Scanner } from "./components/Scanner";
 import { IconButton } from "./components/Icon";
 import { useTheme } from "./theme";
 import { exitSharing } from "./consistency";
@@ -258,7 +261,7 @@ export function App() {
       clearInterval(h);
     };
   }, [shell?.agent_ready]);
-  const [view, setView] = useState<View>("profiles");
+  const [view, setView] = useState<View>("dashboard");
   const [openOnly, setOpenOnly] = useState(false);
   /** A line of information at the top of the window, and — when it is about a
    *  launch — which profile it is about.
@@ -835,7 +838,13 @@ export function App() {
       <main className="main">
         <header className="head">
           <h1>
-            {view === "trash"
+            {view === "dashboard"
+              ? "Tableau de Bord de Confidentialité"
+              : view === "network"
+                ? "GhostNet Network & Tor"
+                : view === "scanner"
+                  ? "GhostNet Scanner & Audit"
+                  : view === "trash"
               ? t("trash.title")
               : view === "proxies"
                 ? t("nav.proxies")
@@ -1636,6 +1645,21 @@ export function App() {
         {/* No project selected is not the same as a project with no profiles,
             and saying the latter to someone who has been granted nothing sends
             them looking for a profile list that was never theirs. */}
+        {view === "dashboard" && (
+          <Dashboard
+            profiles={profiles}
+            onLaunchProfile={(p) => void onLaunch(p)}
+            onNewProfile={(_type) => {
+              setEditing(null);
+            }}
+            onNavigate={(v) => {
+              if (v === "profiles") setActive(null);
+              setView(v);
+            }}
+          />
+        )}
+        {view === "network" && <NetworkControl />}
+        {view === "scanner" && <Scanner />}
         {view === "proxies" && <Proxies profiles={profiles} local={local} myEmail={me?.email ?? null} />}
         {view === "extensions" && <ExtensionsView profiles={profiles} />}
         {view === "assistants" && <AssistantsView />}

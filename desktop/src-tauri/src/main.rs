@@ -79,7 +79,7 @@ fn main() {
                 // Long enough for a loaded self-hosted box, short enough that a
                 // black-holed address reports itself rather than hanging the UI.
                 .timeout(Duration::from_secs(20))
-                .user_agent(concat!("fury-desktop/", env!("CARGO_PKG_VERSION")))
+                .user_agent(concat!("ghostnet-desktop/", env!("CARGO_PKG_VERSION")))
                 .build()?;
 
             // Touch the credential store once, here, where a failure is
@@ -90,7 +90,7 @@ fn main() {
             // installed. Probing at startup turns that into one line in the log
             // at the moment it happens, instead of a session that silently
             // stops being remembered.
-            if let Err(e) = keyring::Entry::new("dev.fury.desktop", "startup-probe") {
+            if let Err(e) = keyring::Entry::new("org.ghostnet.desktop", "startup-probe") {
                 eprintln!("keychain unavailable — sessions will not be remembered: {e}");
             }
 
@@ -177,6 +177,9 @@ fn main() {
             commands::delete_credential,
             commands::totp_code,
             commands::save_proxy,
+            commands::ghostnet_tor_status,
+            commands::ghostnet_scan_run,
+            commands::ghostnet_killswitch_toggle,
             commands::check_proxy,
             commands::diagnose_proxy,
             commands::rotate_proxy,
@@ -245,7 +248,7 @@ fn main() {
             commands::create_project,
         ])
         .build(tauri::generate_context!())
-        .expect("error while running Fury")
+        .expect("error while running GhostNet Suite")
         .run(|_app, event| {
             // The agent this shell started outlives it on purpose: open
             // profiles keep their locks and relays. With nothing open it had

@@ -66,7 +66,7 @@ use relay::{Credentials, Relay, Upstream};
 /// for it, not because they installed something. [`http::DEFAULT_PORT`] is the
 /// number to use when you do — see examples/.
 fn api_port() -> Option<u16> {
-    std::env::var("FURY_API_PORT")
+    std::env::var("GHOSTNET_API_PORT").or_else(|_| std::env::var("FURY_API_PORT"))
         .ok()
         .and_then(|v| v.trim().parse::<u16>().ok())
         .filter(|p| *p > 0)
@@ -91,7 +91,8 @@ async fn main() -> anyhow::Result<()> {
             }
             let agent = ipc::Agent::new().await?;
             // Farming plans run whether or not a window is open. See farm.rs.
-            agent.start_farming();
+            // GhostNet: farming plans disabled in favor of strict privacy engineering
+            // agent.start_farming();
 
             // Only when asked for. See http.rs: a loopback port is reachable
             // from a page the browser itself opens, and the defences are worth

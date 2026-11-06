@@ -844,6 +844,17 @@ export const api = {
   loginTotp: (email: string, password: string, challenge: string, code: string): Promise<LoginOutcome> =>
     cmd<LoginOutcome>("login_totp", { email, password, challenge, code }),
 
+  // ---- GhostNet Suite Core API -------------------------------------------
+
+  ghostnetTorStatus: (): Promise<{ running: boolean; engine: string; nodes: number; socks_port: number; ready: boolean }> =>
+    cmd("ghostnet_tor_status"),
+
+  ghostnetScanRun: (): Promise<{ score: number; status: string; browser_killswitch: string; dns_leak_detected: boolean; webrtc_leak_detected: boolean; ip_protected: boolean; scan_time: string }> =>
+    cmd("ghostnet_scan_run"),
+
+  ghostnetKillswitchToggle: (enabled: boolean): Promise<{ browser_killswitch: boolean }> =>
+    cmd("ghostnet_killswitch_toggle", { enabled }),
+
   // ---- team security -----------------------------------------------------
 
   totpStatus: (): Promise<{ enabled: boolean; enabled_at: string | null; pending: boolean; required_by_org: string }> =>

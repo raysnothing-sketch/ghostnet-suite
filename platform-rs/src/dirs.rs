@@ -33,6 +33,11 @@ use std::path::{Path, PathBuf};
 /// tying its data to a GUI application's identity would be wrong the first time
 /// someone runs the agent headless.
 pub fn data_dir() -> PathBuf {
+    if let Ok(explicit) = std::env::var("GHOSTNET_HOME") {
+        if !explicit.is_empty() {
+            return PathBuf::from(explicit);
+        }
+    }
     if let Ok(explicit) = std::env::var("FURY_HOME") {
         if !explicit.is_empty() {
             return PathBuf::from(explicit);
@@ -42,7 +47,7 @@ pub fn data_dir() -> PathBuf {
     #[cfg(target_os = "macos")]
     {
         let home = std::env::var("HOME").unwrap_or_else(|_| ".".into());
-        PathBuf::from(home).join("Library/Application Support/Fury")
+        PathBuf::from(home).join("Library/Application Support/GhostNet")
     }
 
     // Not a shipped target — see lib.rs — but the Unix path compiles here so
@@ -55,7 +60,7 @@ pub fn data_dir() -> PathBuf {
         std::env::var("XDG_DATA_HOME")
             .map(PathBuf::from)
             .unwrap_or_else(|_| PathBuf::from(&home).join(".local/share"))
-            .join("fury")
+            .join("ghostnet")
     }
 
     #[cfg(windows)]
@@ -76,7 +81,7 @@ pub fn data_dir() -> PathBuf {
                 PathBuf::from(std::env::var("USERPROFILE").unwrap_or_else(|_| ".".into()))
                     .join("AppData/Roaming")
             })
-            .join("Fury")
+            .join("GhostNet")
     }
 }
 

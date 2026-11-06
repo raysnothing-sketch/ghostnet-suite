@@ -197,6 +197,7 @@ impl FingerprintConfig {
         let is_mac = self.os.name == "macOS";
         let is_win = self.os.name == "Windows";
         let is_android = self.os.name == "Android";
+        let is_linux = self.os.name == "Linux";
 
         // --- OS vs GPU driver stack -------------------------------------
         let r = &self.gpu.webgl_renderer;
@@ -205,6 +206,9 @@ impl FingerprintConfig {
         }
         if is_win && r.contains("Metal") {
             bad(format!("Windows profile reports a Metal renderer: {r}"));
+        }
+        if is_linux && (r.contains("Direct3D") || r.contains("Metal")) {
+            bad(format!("Linux profile reports a Windows/macOS renderer: {r}"));
         }
         if is_mac && (r.contains("NVIDIA") || r.contains("AMD Radeon RX")) {
             bad(format!(
@@ -236,7 +240,7 @@ impl FingerprintConfig {
                 bad(format!("Android profile reports a desktop renderer: {r}"));
             }
         }
-        let expected_platform = if is_mac { "MacIntel" } else { "Win32" };
+        let expected_platform = if is_mac { "MacIntel" } else if is_linux { "Linux x86_64" } else { "Win32" };
         if !is_android && self.navigator.platform != expected_platform {
             bad(format!(
                 "navigator.platform '{}' does not match OS '{}' (expected '{}')",

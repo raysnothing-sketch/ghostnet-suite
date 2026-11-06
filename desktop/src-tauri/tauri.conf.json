@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Fury",
-  "identifier": "dev.fury.desktop",
+  "productName": "GhostNet Suite",
+  "identifier": "org.ghostnet.desktop",
   "build": {
     "devUrl": "http://localhost:5273",
     "frontendDist": "../dist",
@@ -12,7 +12,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Fury",
+        "title": "GhostNet Suite",
         "width": 1280,
         "height": 800,
         "minWidth": 900,
@@ -29,7 +29,7 @@
     "active": true,
     "targets": [
       "app",
-      "dmg",
+      "deb",
       "nsis"
     ],
     "icon": [
@@ -39,10 +39,10 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "copyright": "Fury Browser contributors",
+    "copyright": "GhostNet Suite contributors",
     "category": "Utility",
-    "shortDescription": "Anti-detect browser for teams",
-    "longDescription": "Self-hosted anti-detect browser with projects, per-project access grants and a shared profile lock.",
+    "shortDescription": "Privacy protection and digital footprint reduction platform",
+    "longDescription": "Open-source integrated desktop suite designed to protect network communications, standardize fingerprints, isolate sessions, and audit digital exposure.",
     "macOS": {
       "minimumSystemVersion": "10.15"
     },
@@ -56,23 +56,12 @@
         "sidebarImage": "installer/sidebar.bmp",
         "installMode": "currentUser",
         "languages": [
-          "Russian",
-          "English"
+          "English",
+          "French"
         ],
         "displayLanguageSelector": true,
         "installerHooks": "installer/hooks.nsh",
         "uninstallerIcon": "icons/icon.ico"
-      }
-    }
-  },
-  "plugins": {
-    "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDk2NTlERjA2QzE0MEU3NUYKUldSZjUwREJCdDlabGpYQ2s5VzJsVXgrcEFGYkh1aHpiVjNlM05ZNE9JQzFuZHFvb0o3Q1NydDgK",
-      "endpoints": [
-        "https://github.com/furyteamtop/fury-antidetect-browser/releases/latest/download/latest.json"
-      ],
-      "windows": {
-        "installMode": "passive"
       }
     }
   }

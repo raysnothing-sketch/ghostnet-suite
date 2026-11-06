@@ -23,7 +23,7 @@ pub fn personas_dir() -> PathBuf {
 }
 
 pub fn db_path() -> PathBuf {
-    data_dir().join("fury.db")
+    data_dir().join("ghostnet.db")
 }
 
 /// Where an installed core lives.

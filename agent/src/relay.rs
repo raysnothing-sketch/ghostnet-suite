@@ -70,6 +70,11 @@ pub enum Upstream {
         port: u16,
         auth: Option<Credentials>,
     },
+    /// GhostNet Tor upstream: routed via local Tor service (Arti or system Tor daemon).
+    /// Remote SOCKS5h DNS resolution is strictly enforced.
+    Tor {
+        port: u16,
+    },
     /// No proxy at all: the relay dials out from this machine, and the profile
     /// shows every site the address this machine already has.
     ///
@@ -219,6 +224,7 @@ impl Relay {
         let (host, port, scheme) = match &self.upstream {
             Upstream::Http { host, port, .. } => (host, port, "http"),
             Upstream::Socks5 { host, port, .. } => (host, port, "socks5"),
+            Upstream::Tor { port } => return format!("tor://127.0.0.1:{port}"),
             // The peer's address is in the config the operator pasted and is
             // not a secret, but it is not reached through this struct — and
             // naming the exit is a courtesy, not a contract, so "wireguard" is
@@ -421,6 +427,15 @@ impl Relay {
                 handshake(
                     "SOCKS5",
                     socks5_connect(&mut s, host, port, auth.as_ref()),
+                )
+                .await?;
+                Ok(Conn::Tcp(s))
+            }
+            Upstream::Tor { port: tport } => {
+                let mut s = connect_upstream("127.0.0.1", *tport).await?;
+                handshake(
+                    "Tor",
+                    socks5_connect(&mut s, host, port, None),
                 )
                 .await?;
                 Ok(Conn::Tcp(s))

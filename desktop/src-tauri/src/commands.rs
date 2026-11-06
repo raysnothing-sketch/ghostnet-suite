@@ -4683,3 +4683,19 @@ mod upload_tests {
         assert_eq!(body["languages"], serde_json::json!(["de-DE", "de"]));
     }
 }
+
+// GhostNet Suite - Network & Scanner Commands
+#[tauri::command]
+pub async fn ghostnet_tor_status() -> R<serde_json::Value> {
+    crate::agent::call("ghostnet.tor.status", serde_json::json!({})).await
+}
+
+#[tauri::command]
+pub async fn ghostnet_scan_run() -> R<serde_json::Value> {
+    crate::agent::call("ghostnet.scan.run", serde_json::json!({})).await
+}
+
+#[tauri::command]
+pub async fn ghostnet_killswitch_toggle(enabled: bool) -> R<serde_json::Value> {
+    crate::agent::call("ghostnet.killswitch.toggle", serde_json::json!({ "enabled": enabled })).await
+}

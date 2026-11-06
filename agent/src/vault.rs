@@ -35,9 +35,9 @@ use base64::Engine;
 use chacha20poly1305::aead::{Aead, KeyInit};
 use chacha20poly1305::{XChaCha20Poly1305, XNonce};
 
-const SERVICE: &str = "dev.fury.agent";
+const SERVICE: &str = "org.ghostnet.agent";
 const ACCOUNT: &str = "vault-key";
-const PREFIX: &str = "fury:v1:";
+const PREFIX: &str = "ghostnet:v1:";
 const NONCE_LEN: usize = 24;
 
 /// The machine key, created on first use.

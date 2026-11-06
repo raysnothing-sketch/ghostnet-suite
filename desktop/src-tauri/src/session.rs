@@ -27,7 +27,7 @@
 
 use std::sync::Mutex;
 
-const SERVICE: &str = "dev.fury.desktop";
+const SERVICE: &str = "org.ghostnet.desktop";
 
 /// Where the organisation key is remembered, keyed by server like the token.
 fn org_key_account(server_url: &str) -> String {
