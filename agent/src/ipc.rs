@@ -2020,7 +2020,12 @@ impl Agent {
 
             "ghostnet.killswitch.toggle" => {
                 let enabled = params.get("enabled").and_then(|v| v.as_bool()).unwrap_or(true);
-                Ok(json!({ "browser_killswitch": enabled }))
+                if enabled {
+                    let _ = crate::firewall::arm_system_killswitch(&[9050, 9051]);
+                } else {
+                    let _ = crate::firewall::disarm_system_killswitch();
+                }
+                Ok(json!({ "browser_killswitch": enabled, "system_firewall": crate::firewall::is_available() }))
             }
 
             "ghostnet.templates.list" => {

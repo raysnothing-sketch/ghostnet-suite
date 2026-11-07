@@ -40,7 +40,7 @@
       "icons/icon.ico"
     ],
     "copyright": "GhostNet Suite contributors",
-    "category": "Utility",
+    "category": "Network",
     "shortDescription": "Privacy protection and digital footprint reduction platform",
     "longDescription": "Open-source integrated desktop suite designed to protect network communications, standardize fingerprints, isolate sessions, and audit digital exposure.",
     "macOS": {
@@ -62,6 +62,22 @@
         "displayLanguageSelector": true,
         "installerHooks": "installer/hooks.nsh",
         "uninstallerIcon": "icons/icon.ico"
+      }
+    },
+    "linux": {
+      "deb": {
+        "depends": [
+          "libwebkit2gtk-4.1-0 | libwebkit2gtk-4.0-37",
+          "libgtk-3-0",
+          "libayatana-appindicator3-1",
+          "libsoup-3.0-0 | libsoup2.4-1",
+          "libssl3 | libssl1.1",
+          "libsecret-1-0",
+          "libsqlite3-0",
+          "nftables | iptables"
+        ],
+        "section": "net",
+        "priority": "optional"
       }
     }
   }

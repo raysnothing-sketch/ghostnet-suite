@@ -20,6 +20,7 @@ mod dock;
 mod core_download;
 mod logging;
 mod ext;
+mod firewall;
 mod geoip;
 mod http;
 mod import_browser;

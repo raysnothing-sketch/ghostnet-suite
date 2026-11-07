@@ -100,6 +100,11 @@ impl std::fmt::Display for Endpoint {
 /// limit is 256 characters, the location is a namespace rather than a
 /// directory, and privacy comes from the DACL rather than from where it sits.
 pub fn endpoint(tag: &str) -> Endpoint {
+    if let Ok(explicit) = std::env::var("GHOSTNET_SOCKET") {
+        if !explicit.is_empty() {
+            return Endpoint(explicit.into());
+        }
+    }
     if let Ok(explicit) = std::env::var("FURY_SOCKET") {
         if !explicit.is_empty() {
             return Endpoint(explicit.into());
@@ -108,15 +113,20 @@ pub fn endpoint(tag: &str) -> Endpoint {
 
     #[cfg(unix)]
     {
-        Endpoint(std::env::temp_dir().join(format!("fury-{tag}.sock")))
+        #[cfg(all(unix, not(target_os = "macos")))]
+        {
+            if let Ok(runtime_dir) = std::env::var("XDG_RUNTIME_DIR") {
+                if !runtime_dir.is_empty() {
+                    return Endpoint(std::path::PathBuf::from(runtime_dir).join(format!("ghostnet-{tag}.sock")));
+                }
+            }
+        }
+        Endpoint(std::env::temp_dir().join(format!("ghostnet-{tag}.sock")))
     }
 
     #[cfg(windows)]
     {
-        // The tag is in the name for the same reason as on Unix, and it is NOT
-        // a security boundary: pipe names are guessable and the DACL is what
-        // keeps other accounts out.
-        Endpoint(format!(r"\\.\pipe\fury-{tag}"))
+        Endpoint(format!(r"\\.\pipe\ghostnet-{tag}"))
     }
 }
 

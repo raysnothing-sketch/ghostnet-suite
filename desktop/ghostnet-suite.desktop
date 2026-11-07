@@ -1,0 +1,22 @@
+[Desktop Entry]
+Name=GhostNet Suite
+GenericName=Privacy Browser & Footprint Reduction Platform
+Comment=Plateforme intégrée de protection de la confidentialité et de réduction des empreintes numériques
+Exec=ghostnet-desktop %u
+Icon=ghostnet-desktop
+Terminal=false
+Type=Application
+Categories=Network;WebBrowser;Security;
+MimeType=x-scheme-handler/ghostnet;
+Keywords=privacy;tor;security;browser;fingerprint;killswitch;anonymous;
+StartupNotify=true
+StartupWMClass=GhostNet Suite
+Actions=NewDisposable;NewTor;
+
+[Desktop Action NewDisposable]
+Name=Nouvelle session jetable (Disposable)
+Exec=ghostnet-desktop --disposable
+
+[Desktop Action NewTor]
+Name=Nouvelle session Tor (Maximum)
+Exec=ghostnet-desktop --tor
