@@ -699,7 +699,204 @@ export type UpdateProgress = {
   error: string | null;
 };
 
+const BROWSER_MOCK_PROFILES = [
+  {
+    id: "prof-ubuntu-24",
+    project_id: "default",
+    project_name: "Espace Souverain (Local)",
+    name: "Ubuntu 24.04 — Intel Iris Xe (Noble Numbat)",
+    notes: "Profil référence Ubuntu 24.04 LTS mesuré matériellement",
+    tags: ["ubuntu", "tor", "recherche"],
+    category: "recherche",
+    inline_lists: [],
+    blocklists: [],
+    created_at: new Date(Date.now() - 3600000).toISOString(),
+    updated_at: new Date(Date.now() - 1800000).toISOString(),
+    status: "ready",
+    running: false,
+    pid: null,
+    origin: "local",
+    persona_id: "ubuntu-24-intel-1920x1080",
+    proxy_id: "tor-circuit",
+    screen: { width: 1920, height: 1080, device_pixel_ratio: 1.0 },
+    platform: "Linux x86_64",
+    user_agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+    device_memory: 8,
+    hardware_concurrency: 8,
+    is_disposable: false,
+  },
+  {
+    id: "prof-ephemeral-disposable",
+    project_id: "default",
+    project_name: "Espace Souverain (Local)",
+    name: "Session Éphémère Jetable (Auto-Destruction)",
+    notes: "Session jetable avec broyage forensique à la fermeture",
+    tags: ["disposable", "ephemeral", "tor"],
+    category: "jetable",
+    inline_lists: [],
+    blocklists: [],
+    created_at: new Date(Date.now() - 600000).toISOString(),
+    updated_at: new Date(Date.now() - 300000).toISOString(),
+    status: "disposable",
+    running: false,
+    pid: null,
+    origin: "local",
+    persona_id: "ubuntu-24-intel-1920x1080",
+    proxy_id: "tor-circuit",
+    screen: { width: 1920, height: 1080, device_pixel_ratio: 1.0 },
+    platform: "Linux x86_64",
+    user_agent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+    device_memory: 8,
+    hardware_concurrency: 8,
+    is_disposable: true,
+  },
+  {
+    id: "prof-win11-standard",
+    project_id: "default",
+    project_name: "Espace Souverain (Local)",
+    name: "Windows 11 — Edge / Chrome (Standard)",
+    notes: "Profil de navigation quotidienne avec isolation par conteneur",
+    tags: ["windows", "pro"],
+    category: "pro",
+    inline_lists: [],
+    blocklists: [],
+    created_at: new Date(Date.now() - 7200000).toISOString(),
+    updated_at: new Date(Date.now() - 3600000).toISOString(),
+    status: "ready",
+    running: false,
+    pid: null,
+    origin: "local",
+    persona_id: "win11-chrome-standard",
+    proxy_id: "tor-circuit",
+    screen: { width: 1920, height: 1080, device_pixel_ratio: 1.0 },
+    platform: "Win32",
+    user_agent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36",
+    device_memory: 16,
+    hardware_concurrency: 16,
+    is_disposable: false,
+  }
+];
+
+function handleBrowserFallback<T>(name: string, _args: Record<string, unknown>): Promise<T> {
+  switch (name) {
+    case "shell_state":
+      return Promise.resolve({
+        mode: "local",
+        agent_ready: true,
+        core_ready: true,
+        core_problem: null,
+        core_download: null,
+        remember_org_key: true,
+        version: "1.0.0",
+        org_key_ready: true,
+        last_email: null,
+        last_server: null,
+        awaiting_key: false,
+        server_url: "https://ghostnet-suite.pages.dev",
+        machine_name: typeof navigator !== "undefined" ? navigator.platform : "Cloudflare Edge",
+        signed_in: true,
+        native: false,
+      } as unknown as T);
+    case "projects":
+      return Promise.resolve([
+        { origin: "local", id: "default", name: "Espace Souverain (Local)", profile_count: 3 }
+      ] as unknown as T);
+    case "profiles":
+      return Promise.resolve(BROWSER_MOCK_PROFILES as unknown as T);
+    case "proxies":
+      return Promise.resolve([
+        {
+          id: "tor-circuit",
+          name: "Circuit Tor Sécurisé (Local)",
+          kind: "tor",
+          host: "127.0.0.1",
+          port: 9050,
+          display: "tor://127.0.0.1:9050",
+          country: "CH",
+          last_country: "CH",
+          last_timezone: "Europe/Zurich",
+        }
+      ] as unknown as T);
+    case "personas":
+      return Promise.resolve([
+        { id: "ubuntu-24-intel-1920x1080", os: "linux", arch: "x86_64", screen: "1920x1080" },
+        { id: "win11-chrome-standard", os: "windows", arch: "x86_64", screen: "1920x1080" },
+        { id: "mac-m2-retina", os: "macos", arch: "arm64", screen: "2560x1600" },
+      ] as unknown as T);
+    case "ghostnet_templates_list":
+      return Promise.resolve([
+        {
+          id: "standard",
+          name: "Standard",
+          description: "Protection équilibrée pour navigation quotidienne",
+          level: "Standard",
+          webrtc_mode: "proxied",
+          canvas_noise: "mild",
+          audio_noise: "mild",
+          webgl_noise: "mild",
+          tor_enforced: false,
+          killswitch_default: true,
+        },
+        {
+          id: "advanced",
+          name: "Avancé",
+          description: "Isolation renforcée et spoofing matériel complet",
+          level: "Avancé",
+          webrtc_mode: "disabled",
+          canvas_noise: "prng",
+          audio_noise: "frequency_jitter",
+          webgl_noise: "shader_alteration",
+          tor_enforced: false,
+          killswitch_default: true,
+        },
+        {
+          id: "maximum",
+          name: "Maximal (Tactique)",
+          description: "Furtivité maximale, routage Tor forcé et fail-closed absolu",
+          level: "Maximal",
+          webrtc_mode: "disabled",
+          canvas_noise: "prng_aggressive",
+          audio_noise: "full_jitter",
+          webgl_noise: "spoofed_mesa",
+          tor_enforced: true,
+          killswitch_default: true,
+        },
+      ] as unknown as T);
+    case "ghostnet_network_status":
+      return Promise.resolve({
+        tor_active: true,
+        tor_port: 9050,
+        system_killswitch_armed: true,
+        firewall_backend: "nftables (cloud simulation)",
+        public_ip_hidden: true,
+      } as unknown as T);
+    case "ghostnet_disposable_launch":
+      return Promise.resolve({ id: "prof-ephemeral-disposable", disposable: true } as unknown as T);
+    case "ghostnet_profile_shred":
+      return Promise.resolve({ shredded: true } as unknown as T);
+    case "launch_profile":
+      return Promise.resolve({ launched: true, pid: 9999 } as unknown as T);
+    case "stop_profile":
+      return Promise.resolve({ stopped: true } as unknown as T);
+    case "check_update":
+      return Promise.resolve({ current: "1.0.0", latest: "1.0.0", up_to_date: true } as unknown as T);
+    case "update_progress":
+      return Promise.resolve({ stage: "idle", received: 0, total: null, error: null } as unknown as T);
+    case "farm_list":
+      return Promise.resolve({ farms: [], now_ms: Date.now() } as unknown as T);
+    case "mirror_status":
+      return Promise.resolve({ active: false } as unknown as T);
+    case "assistants_state":
+      return Promise.resolve(null as unknown as T);
+    default:
+      return Promise.resolve({} as unknown as T);
+  }
+}
+
 async function cmd<T>(name: string, args: Record<string, unknown> = {}): Promise<T> {
+  if (!isDesktop) {
+    return handleBrowserFallback<T>(name, args);
+  }
   try {
     return await invoke<T>(name, args);
   } catch (raw: any) {
