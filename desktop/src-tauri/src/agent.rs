@@ -307,17 +307,19 @@ async fn retire_other_version() -> bool {
 }
 
 pub(crate) fn agent_binary() -> Option<PathBuf> {
-    if let Ok(explicit) = std::env::var("FURY_AGENT") {
+    if let Ok(explicit) = std::env::var("GHOSTNET_AGENT").or_else(|_| std::env::var("FURY_AGENT")) {
         let path = PathBuf::from(explicit);
         return path.exists().then_some(path);
     }
     // Beside this binary in a packaged app; beside the shell's own build output
     // in a development tree, which is the same directory either way.
-    let beside = std::env::current_exe()
-        .ok()?
-        .parent()?
-        .join(if cfg!(windows) { "fury-agent.exe" } else { "fury-agent" });
-    beside.exists().then_some(beside)
+    let parent = std::env::current_exe().ok()?.parent()?.to_path_buf();
+    let ghostnet_exe = parent.join(if cfg!(windows) { "ghostnet-agent.exe" } else { "ghostnet-agent" });
+    if ghostnet_exe.exists() {
+        return Some(ghostnet_exe);
+    }
+    let fury_exe = parent.join(if cfg!(windows) { "fury-agent.exe" } else { "fury-agent" });
+    fury_exe.exists().then_some(fury_exe)
 }
 
 #[cfg(test)]

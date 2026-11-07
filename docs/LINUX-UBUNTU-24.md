@@ -103,7 +103,9 @@ ghostnet-desktop
 Si le System Kill Switch est activé dans l'interface Réseau, le processus peut nécessiter l'autorisation de manipuler les tables de filtrage :
 ```bash
 # Autoriser le binaire agent à configurer nftables sans mot de passe root complet :
-sudo setcap cap_net_admin,cap_net_raw+ep /usr/bin/fury-agent
+sudo setcap cap_net_admin,cap_net_raw+ep /usr/bin/ghostnet-agent
+# Ou pour lien symbolique rétrocompatible :
+# sudo setcap cap_net_admin,cap_net_raw+ep /usr/bin/fury-agent
 ```
 
 ### Emplacement des journaux :

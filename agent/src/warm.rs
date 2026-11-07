@@ -1,3 +1,5 @@
+// GHOSTNET SUITE v1.0 NOTE: Commercial multi-accounting farming logic has been decoupled
+// and neutralized. This file is retained only for internal legacy contract preservation.
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright 2026 Bogdan Shapovalov and the Fury authors
 

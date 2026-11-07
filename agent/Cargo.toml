@@ -4,6 +4,15 @@ version.workspace = true
 edition.workspace = true
 license.workspace = true
 
+
+[[bin]]
+name = "ghostnet-agent"
+path = "src/main.rs"
+
+[[bin]]
+name = "fury-agent"
+path = "src/main.rs"
+
 [dependencies]
 fury-shared = { path = "../shared-rs" }
 # Named pipes, DACLs and the config carrier. Its own crate so that

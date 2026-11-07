@@ -47,6 +47,7 @@
       "minimumSystemVersion": "10.15"
     },
     "externalBin": [
+      "binaries/ghostnet-agent",
       "binaries/fury-agent"
     ],
     "windows": {

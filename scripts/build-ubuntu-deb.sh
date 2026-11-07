@@ -69,6 +69,10 @@ if [ -n "${DEB_FILE}" ] && [ -f "${DEB_FILE}" ]; then
   echo "Pour installer sur Ubuntu 24.04 LTS :"
   echo "  sudo dpkg -i ${DEB_FILE}"
   echo "  sudo apt-get install -f # (si dépendances manquantes)"
+
+echo ""
+echo "Pour activer le System Kill Switch nftables sans élévation root :"
+echo "  sudo setcap cap_net_admin+ep /usr/bin/ghostnet-agent"
   echo ""
   echo "Pour lancer GhostNet Suite :"
   echo "  ghostnet-desktop"

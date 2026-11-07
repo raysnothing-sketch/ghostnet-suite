@@ -67,11 +67,21 @@ run('cargo', ['build', '--release', '-p', 'fury-agent'], { stdio: 'inherit' })
 
 const binaries = join(repo, 'desktop', 'src-tauri', 'binaries')
 mkdirSync(binaries, { recursive: true })
-copyFileSync(
-  join(repo, 'target', 'release', `fury-agent${exe}`),
-  join(binaries, `fury-agent-${triple}${exe}`),
-)
-console.log(`==> sidecar: fury-agent-${triple}${exe}`)
+
+// Copy both ghostnet-agent and legacy fury-agent sidecars
+for (const name of ['ghostnet-agent', 'fury-agent']) {
+  const src = join(repo, 'target', 'release', `${name}${exe}`)
+  const dest = join(binaries, `${name}-${triple}${exe}`)
+  try {
+    copyFileSync(src, dest)
+    console.log(`==> sidecar: ${name}-${triple}${exe}`)
+  } catch (err) {
+    // Fallback if built under the alternate binary name
+    const fallbackSrc = join(repo, 'target', 'release', `fury-agent${exe}`)
+    copyFileSync(fallbackSrc, dest)
+    console.log(`==> sidecar (fallback): ${name}-${triple}${exe}`)
+  }
+}
 
 // Sign the sidecar HERE, before `tauri build` runs, and not afterwards.
 //
