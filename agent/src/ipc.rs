@@ -2023,6 +2023,12 @@ impl Agent {
                 Ok(json!({ "browser_killswitch": enabled }))
             }
 
+            "ghostnet.templates.list" => {
+                let os = params.get("os").and_then(|v| v.as_str());
+                let templates = fury_shared::templates::standard_templates(os);
+                Ok(serde_json::to_value(templates)?)
+            }
+
             "mirror.stop" => {
                 self.mirror.stop().await;
                 Ok(json!({ "stopped": true }))

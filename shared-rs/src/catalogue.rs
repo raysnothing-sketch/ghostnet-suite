@@ -33,6 +33,7 @@ use crate::persona::Persona;
 
 const MACOS_BASE: &str = include_str!("../../shared/personas/macos-15-m-series-1728x1117.json");
 const WINDOWS_BASE: &str = include_str!("../../shared/personas/windows-11-rtx4060-1920x1080.json");
+const LINUX_BASE: &str = include_str!("../../shared/personas/ubuntu-24-intel-1920x1080.json");
 
 /// One real machine, as a delta from its family's measured base.
 struct Variant {
@@ -475,11 +476,45 @@ pub fn pick_weighted(roll: u64) -> Persona {
 
 /// The operating system this build runs on, spelled as `PersonaOs::name`
 /// spells it; None where there are no desktop personas for it (Linux).
+
+const LINUX: &[Variant] = &[
+    Variant {
+        id: "ubuntu24-intel-uhd-1920x1080",
+        weight: 0.025,
+        gpu_model: "Mesa Intel(R) UHD Graphics (ADL-S GT1)",
+        pci_device: 0x4692,
+        gpu_vendor: Some("Google Inc. (Mesa)"),
+        webgpu_arch: "gen-12",
+        width: 1920,
+        height: 1080,
+        cores: 8,
+        memory_gb: 16,
+        cpu_model: "Intel Core i5-12400",
+        os_version: Some("24.04"),
+    },
+    Variant {
+        id: "ubuntu24-amd-radv-1920x1080",
+        weight: 0.015,
+        gpu_model: "AMD Radeon RX 6600 (RADV NAVI23)",
+        pci_device: 0x73ff,
+        gpu_vendor: Some("Google Inc. (Mesa)"),
+        webgpu_arch: "rdna-2",
+        width: 1920,
+        height: 1080,
+        cores: 12,
+        memory_gb: 16,
+        cpu_model: "AMD Ryzen 5 5600",
+        os_version: Some("24.04"),
+    },
+];
+
 pub fn host_os() -> Option<&'static str> {
     if cfg!(target_os = "macos") {
         Some("macOS")
     } else if cfg!(windows) {
         Some("Windows")
+    } else if cfg!(target_os = "linux") {
+        Some("Linux")
     } else {
         None
     }
@@ -537,13 +572,17 @@ mod contributed {
 pub fn all() -> Vec<Persona> {
     let mac: Persona = serde_json::from_str(MACOS_BASE).expect("macOS base persona parses");
     let win: Persona = serde_json::from_str(WINDOWS_BASE).expect("Windows base persona parses");
+    let lin: Persona = serde_json::from_str(LINUX_BASE).expect("Linux base persona parses");
 
-    let mut out = Vec::with_capacity(MACOS.len() + WINDOWS.len() + contributed::CONTRIBUTED.len());
+    let mut out = Vec::with_capacity(MACOS.len() + WINDOWS.len() + LINUX.len() + contributed::CONTRIBUTED.len());
     for v in MACOS {
         out.push(expand(&mac, v, Family::MacOs));
     }
     for v in WINDOWS {
         out.push(expand(&win, v, Family::Windows));
+    }
+    for v in LINUX {
+        out.push(expand(&lin, v, Family::Linux));
     }
     // Contributed machines, whole: these are not deltas from a base but a
     // capture of one real machine each, with `source: "capture"` set by the
@@ -561,6 +600,7 @@ pub fn all() -> Vec<Persona> {
 enum Family {
     MacOs,
     Windows,
+    Linux,
 }
 
 fn expand(base: &Persona, v: &Variant, family: Family) -> Persona {
@@ -602,6 +642,11 @@ fn expand(base: &Persona, v: &Variant, family: Family) -> Persona {
             v.gpu_model,
             v.pci_device
         ),
+        Family::Linux => format!(
+            "ANGLE (Mesa, {} (0x{:08X}), OpenGL 4.6)",
+            v.gpu_model,
+            v.pci_device
+        ),
     };
     if let Some(vendor) = v.gpu_vendor {
         p.gpu.webgl_vendor = vendor.to_string();
@@ -623,6 +668,7 @@ fn expand(base: &Persona, v: &Variant, family: Family) -> Persona {
         - match family {
             Family::MacOs => MACOS_CHROME,
             Family::Windows => WINDOWS_TASKBAR,
+            Family::Linux => 27,
         };
 
     p.cpu.cores = v.cores;
@@ -809,7 +855,7 @@ mod tests {
 
     #[test]
     fn a_profile_made_here_gets_a_machine_of_this_os() {
-        for os in ["macOS", "Windows"] {
+        for os in ["macOS", "Windows", "Linux"] {
             let mut seen = std::collections::HashSet::new();
             for i in 0..2_000u64 {
                 let roll = i.wrapping_mul(0x9e37_79b9_7f4a_7c15);
@@ -823,7 +869,7 @@ mod tests {
         }
         // No OS to match, or one with no machines: the whole catalogue.
         assert_eq!(pick_weighted_on(42, None).id, pick_weighted(42).id);
-        assert_eq!(pick_weighted_on(42, Some("Linux")).id, pick_weighted(42).id);
+        assert_eq!(pick_weighted_on(42, Some("FreeBSD")).id, pick_weighted(42).id);
     }
 
     #[test]

@@ -4699,3 +4699,8 @@ pub async fn ghostnet_scan_run() -> R<serde_json::Value> {
 pub async fn ghostnet_killswitch_toggle(enabled: bool) -> R<serde_json::Value> {
     crate::agent::call("ghostnet.killswitch.toggle", serde_json::json!({ "enabled": enabled })).await
 }
+
+#[tauri::command]
+pub async fn ghostnet_templates_list(os: Option<String>) -> R<serde_json::Value> {
+    crate::agent::call("ghostnet.templates.list", serde_json::json!({ "os": os })).await
+}

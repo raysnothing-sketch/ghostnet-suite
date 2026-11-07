@@ -20,6 +20,7 @@ pub mod overrides;
 pub mod persona;
 pub mod proxy_list;
 pub mod rbac;
+pub mod templates;
 
 pub use fingerprint::FingerprintConfig;
 pub use persona::{Persona, ProfileContext};

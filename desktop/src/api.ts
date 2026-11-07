@@ -88,8 +88,25 @@ export interface TotpCode {
  *  on ONE existing profile passes it. */
 export type Origin = "local" | "team" | "shared";
 
+export interface PrivacyTemplate {
+  id: string;
+  name: string;
+  mode: "standard" | "advanced" | "maximum";
+  category: "personal" | "professional" | "research" | "disposable";
+  description: string;
+  persona_id: string;
+  overrides: MachineOverrides;
+  default_blocklists: string[];
+  allow_no_proxy: boolean;
+  require_tor: boolean;
+  webrtc_policy: string;
+  is_disposable: boolean;
+}
+
 export interface Profile {
   id: string;
+  privacy_mode?: "standard" | "advanced" | "maximum";
+  category?: "personal" | "professional" | "research" | "disposable";
   origin: Origin;
   /** How many people hold this profile through a share. Zero for a local one. */
   shared_with: number;
@@ -854,6 +871,9 @@ export const api = {
 
   ghostnetKillswitchToggle: (enabled: boolean): Promise<{ browser_killswitch: boolean }> =>
     cmd("ghostnet_killswitch_toggle", { enabled }),
+
+  ghostnetTemplatesList: (os?: string): Promise<PrivacyTemplate[]> =>
+    cmd("ghostnet_templates_list", { os }),
 
   // ---- team security -----------------------------------------------------
 

@@ -7,7 +7,7 @@ import { spreadPastedProxy } from "../proxyLine";
 import { proxyUrl, wgEndpoint } from "../proxyUrl";
 import { WireGuardConf } from "./WireGuardConf";
 import { SUGGESTED } from "../status";
-import { api, type DomainList, type LocalProxy, type MachineOverrides, type Persona, type Preview, type Profile, type Project } from "../api";
+import { api, type DomainList, type LocalProxy, type MachineOverrides, type Persona, type Preview, type PrivacyTemplate, type Profile, type Project } from "../api";
 import { Logins } from "./Logins";
 import { Select } from "./Select";
 import { SuggestInput } from "./SuggestInput";
@@ -129,6 +129,7 @@ export function hostOs(): string | null {
   const ua = navigator.userAgent;
   if (/Macintosh|Mac OS X/.test(ua)) return "macOS";
   if (/Windows/.test(ua)) return "Windows";
+  if (/Linux/.test(ua)) return "Linux";
   return null;
 }
 const HOST_OS = hostOs();
@@ -285,6 +286,98 @@ export function ProfileDialog({
   const [lists, setLists] = useState<DomainList[]>([]);
   const [blocklists, setBlocklists] = useState<string[]>(editing?.blocklists ?? []);
 
+  // GhostNet Standardized Privacy Templates & Category Classification
+  const [templates, setTemplates] = useState<PrivacyTemplate[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>("ghostnet-template-standard");
+  const [category, setCategory] = useState<"personal" | "professional" | "research" | "disposable">(
+    editing?.category ?? "personal"
+  );
+  const [privacyMode, setPrivacyMode] = useState<"standard" | "advanced" | "maximum">(
+    editing?.privacy_mode ?? "standard"
+  );
+
+  useEffect(() => {
+    api.ghostnetTemplatesList(HOST_OS ?? undefined)
+      .then((res) => {
+        if (res && res.length > 0) setTemplates(res);
+      })
+      .catch(() => {
+        setTemplates([
+          {
+            id: "ghostnet-template-standard",
+            name: "Standard",
+            mode: "standard",
+            category: "personal",
+            description: "Protection equilibrée : OS hôte, résolution 1080p, faible friction anti-bot.",
+            persona_id: HOST_OS === "Linux" ? "ubuntu24-intel-uhd-1920x1080" : "win11-iris-xe-1920x1080",
+            overrides: { canvas: "noise" as any, screen: { width: 1920, height: 1080, device_pixel_ratio: 1.0 } },
+            default_blocklists: ["easylist", "easyprivacy"],
+            allow_no_proxy: true,
+            require_tor: false,
+            webrtc_policy: "default_public_interface_only",
+            is_disposable: false,
+          },
+          {
+            id: "ghostnet-template-advanced",
+            name: "Avancé",
+            mode: "advanced",
+            category: "professional",
+            description: "Haute confidentialité : affichage 1080p normalisé, WebRTC filtré, anti-tracking actif.",
+            persona_id: HOST_OS === "Linux" ? "ubuntu24-intel-uhd-1920x1080" : "win11-iris-xe-1920x1080",
+            overrides: { canvas: "noise" as any, cores: 8, memory_gb: 16, screen: { width: 1920, height: 1080, device_pixel_ratio: 1.0 } },
+            default_blocklists: ["easylist", "easyprivacy", "peter-lowe-adservers"],
+            allow_no_proxy: false,
+            require_tor: false,
+            webrtc_policy: "disable_non_proxied_udp",
+            is_disposable: false,
+          },
+          {
+            id: "ghostnet-template-maximum",
+            name: "Maximum (Tor)",
+            mode: "maximum",
+            category: "research",
+            description: "Anonymat strict : routage Tor obligatoire, Browser Killswitch armé, WebRTC désactivé.",
+            persona_id: HOST_OS === "Linux" ? "ubuntu24-intel-uhd-1920x1080" : "win11-iris-xe-1920x1080",
+            overrides: { canvas: "noise" as any, cores: 8, memory_gb: 16, screen: { width: 1920, height: 1080, device_pixel_ratio: 1.0 } },
+            default_blocklists: ["easylist", "easyprivacy", "peter-lowe-adservers", "fanboy-annoyance"],
+            allow_no_proxy: false,
+            require_tor: true,
+            webrtc_policy: "disable",
+            is_disposable: false,
+          },
+          {
+            id: "ghostnet-template-disposable",
+            name: "Session Jetable",
+            mode: "advanced",
+            category: "disposable",
+            description: "Session éphémère isolée : le profil temporaire est totalement détruit et effacé à la fermeture.",
+            persona_id: HOST_OS === "Linux" ? "ubuntu24-intel-uhd-1920x1080" : "win11-iris-xe-1920x1080",
+            overrides: { canvas: "noise" as any, screen: { width: 1920, height: 1080, device_pixel_ratio: 1.0 } },
+            default_blocklists: ["easylist", "easyprivacy"],
+            allow_no_proxy: true,
+            require_tor: false,
+            webrtc_policy: "default_public_interface_only",
+            is_disposable: true,
+          }
+        ]);
+      });
+  }, []);
+
+  const applyTemplate = (tpl: PrivacyTemplate) => {
+    setSelectedTemplateId(tpl.id);
+    setPrivacyMode(tpl.mode);
+    setCategory(tpl.category);
+    if (!editing) {
+      if (tpl.persona_id) setPersonaId(tpl.persona_id);
+      setOverrides((prev) => compact({ ...prev, ...tpl.overrides }));
+      setBlocklists((cur) => Array.from(new Set([...cur, ...tpl.default_blocklists])));
+      setAllowNoProxy(tpl.allow_no_proxy);
+      if (tpl.is_disposable) {
+        setTags((cur) => (cur.includes("disposable") ? cur : cur ? `${cur}, disposable` : "disposable"));
+      }
+    }
+  };
+
   useEffect(() => {
     void api.personas().then((p) => {
       setPersonas(p);
@@ -387,6 +480,8 @@ export function ProfileDialog({
         allow_no_proxy: !useProxyId && allowNoProxy,
         blocklists,
         last_opened_at: null,
+        privacy_mode: privacyMode,
+        category: category,
       },
       // Where to save it. An existing profile goes back where it came from --
       // with both worlds in one list, the shell's mode no longer says which.
@@ -508,6 +603,61 @@ export function ProfileDialog({
                     </div>
                   </div>
                 )}
+                {/* GhostNet Privacy Templates & Classification */}
+                <div className="field">
+                  <label>Profil de Protection</label>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "var(--s-2)", width: "100%" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 8 }}>
+                      {templates.map((tpl) => {
+                        const active = selectedTemplateId === tpl.id;
+                        return (
+                          <button
+                            key={tpl.id}
+                            type="button"
+                            onClick={() => applyTemplate(tpl)}
+                            style={{
+                              padding: "8px 10px",
+                              borderRadius: 8,
+                              textAlign: "left",
+                              cursor: "pointer",
+                              border: active ? "2px solid var(--accent, #6366f1)" : "1px solid var(--border, #333)",
+                              background: active ? "rgba(99, 102, 241, 0.15)" : "var(--surface-2, #1e1e24)",
+                              color: "inherit",
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 3,
+                            }}
+                          >
+                            <div style={{ fontWeight: 600, fontSize: "0.82rem", display: "flex", alignItems: "center", gap: 5 }}>
+                              <span>{tpl.mode === "maximum" ? "🧅" : tpl.category === "disposable" ? "⚡" : tpl.mode === "advanced" ? "🔒" : "🛡️"}</span>
+                              <span>{tpl.name}</span>
+                            </div>
+                            <div style={{ fontSize: "0.7rem", opacity: 0.75, lineHeight: 1.2 }}>
+                              {tpl.description.slice(0, 50)}...
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="field">
+                  <label>Classification</label>
+                  <div className="segmented">
+                    {(["personal", "professional", "research", "disposable"] as const).map((cat) => (
+                      <button
+                        key={cat}
+                        type="button"
+                        aria-pressed={category === cat}
+                        onClick={() => setCategory(cat)}
+                      >
+                        {cat === "personal" ? "👤 Perso" : cat === "professional" ? "💼 Pro" : cat === "research" ? "🔬 Recherche" : "⚡ Jetable"}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="field">
                   <label htmlFor="p-name">{t("pd.name")}</label>
                   <div>

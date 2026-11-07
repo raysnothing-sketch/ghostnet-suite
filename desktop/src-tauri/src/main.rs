@@ -180,6 +180,7 @@ fn main() {
             commands::ghostnet_tor_status,
             commands::ghostnet_scan_run,
             commands::ghostnet_killswitch_toggle,
+            commands::ghostnet_templates_list,
             commands::check_proxy,
             commands::diagnose_proxy,
             commands::rotate_proxy,
