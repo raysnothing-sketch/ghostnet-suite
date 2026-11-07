@@ -875,6 +875,12 @@ export const api = {
   ghostnetTemplatesList: (os?: string): Promise<PrivacyTemplate[]> =>
     cmd("ghostnet_templates_list", { os }),
 
+  ghostnetProfileShred: (id: string): Promise<{ shredded: boolean; id: string }> =>
+    cmd("ghostnet_profile_shred", { id }),
+
+  ghostnetDisposableLaunch: (): Promise<{ id: string; disposable: boolean }> =>
+    cmd("ghostnet_disposable_launch"),
+
   // ---- team security -----------------------------------------------------
 
   totpStatus: (): Promise<{ enabled: boolean; enabled_at: string | null; pending: boolean; required_by_org: string }> =>

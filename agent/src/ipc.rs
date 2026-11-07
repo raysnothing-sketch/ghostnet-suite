@@ -2029,6 +2029,46 @@ impl Agent {
                 Ok(serde_json::to_value(templates)?)
             }
 
+            "ghostnet.profile.shred" => {
+                let id = str_param(&params, "id")?;
+                if self.running.lock().await.contains_key(&id) {
+                    let _ = self.stop(&id).await;
+                }
+                let dir = paths::profile_dir(&id);
+                self.store.wipe_disposable_profile(&id, &dir).await?;
+                Ok(json!({ "shredded": true, "id": id }))
+            }
+
+            "ghostnet.disposable.launch" => {
+                let disp_id = format!("disp_{}", &uuid::Uuid::now_v7().to_string()[..8]);
+                let name = format!("Session Jetable #{}", &disp_id[5..]);
+                let os = fury_shared::catalogue::host_os();
+                let persona_id = fury_shared::templates::recommended_persona_for_os(os, fury_shared::templates::PrivacyMode::Advanced);
+                let profile = Profile {
+                    id: disp_id.clone(),
+                    project_id: None,
+                    project_name: None,
+                    name,
+                    notes: "Session éphémère jetable — sera détruite à la fermeture".to_string(),
+                    tags: vec!["disposable".to_string(), "ephemeral".to_string()],
+                    status: "disposable".to_string(),
+                    blocklists: vec!["easylist".to_string(), "easyprivacy".to_string()],
+                    inline_lists: Vec::new(),
+                    persona_id,
+                    fp_seed: 0,
+                    allow_no_proxy: true,
+                    proxy: None,
+                    proxy_id: None,
+                    timezone: None,
+                    languages: None,
+                    overrides: Default::default(),
+                    start_urls: Vec::new(),
+                    last_opened_at: None,
+                };
+                let id = self.store.upsert_profile(&profile).await?;
+                Ok(json!({ "id": id, "disposable": true }))
+            }
+
             "mirror.stop" => {
                 self.mirror.stop().await;
                 Ok(json!({ "stopped": true }))
@@ -3543,6 +3583,16 @@ impl Agent {
             }
             pushed = serde_json::json!(pushed_result?);
         }
+
+        // GhostNet Suite Phase 5: Ephemeral Disposable Session Shredding
+        if let Ok(Some(p)) = self.store.profile(profile_id).await {
+            if p.is_disposable() {
+                let dir = paths::profile_dir(profile_id);
+                tracing::info!(profile = %profile_id, "GhostNet: Disposable session closed — shredding user data and database traces");
+                let _ = self.store.wipe_disposable_profile(profile_id, &dir).await;
+            }
+        }
+
         Ok(serde_json::json!({ "stopped": true, "uploaded_version": pushed }))
     }
 }

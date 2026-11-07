@@ -49,6 +49,8 @@ const P = {
   /** A paper plane: write to someone (Telegram). */
   tag: "M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9ZM7.5 7.5h.01",
   send: "M21 3 10 14M21 3l-7 18-4-7-7-4 18-7Z",
+  bolt: "M13 2 3 14h9l-1 8 10-12h-9l1-8z",
+  shield: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
 } as const;
 
 export type IconName = keyof typeof P;

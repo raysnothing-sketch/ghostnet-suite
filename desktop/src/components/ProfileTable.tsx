@@ -62,6 +62,7 @@ export function ProfileTable({
   onStop,
   onEdit,
   onDelete,
+  onShred,
   onExtensions,
   onShare,
   onNetwork,
@@ -86,6 +87,8 @@ export function ProfileTable({
    *  live, and that screen does not exist yet. */
   onEdit?: (p: Profile) => void;
   onDelete?: (p: Profile) => void;
+  /** Purge / shred profile data immediately */
+  onShred?: (p: Profile) => void;
   /** Extensions and disk usage — the two things beside the browser data. */
   onExtensions?: (p: Profile) => void;
   /** Give someone access to this one profile. On the row, in words, because
@@ -280,9 +283,27 @@ export function ProfileTable({
                     </span>
                   )}
                 </div>
-                {p.tags.length > 0 && (
-                  <div className="tags">{p.tags.map((t) => <span key={t}>{t}</span>)}</div>
-                )}
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+                  {(() => {
+                    const isDisp = p.category === "disposable" || p.tags.includes("disposable") || (p.status ?? "").toLowerCase() === "disposable";
+                    const isResearch = p.category === "research" || p.tags.includes("research") || p.tags.includes("osint");
+                    const isPro = p.category === "professional" || p.tags.includes("professional") || p.tags.includes("work");
+                    if (isDisp) {
+                      return <span style={{ padding: "1px 6px", borderRadius: 4, fontSize: "0.68rem", fontWeight: 700, background: "rgba(245, 158, 11, 0.18)", color: "#f59e0b", border: "1px solid rgba(245, 158, 11, 0.35)" }}>⚡ Jetable</span>;
+                    } else if (isResearch) {
+                      return <span style={{ padding: "1px 6px", borderRadius: 4, fontSize: "0.68rem", fontWeight: 700, background: "rgba(168, 85, 247, 0.18)", color: "#a855f7", border: "1px solid rgba(168, 85, 247, 0.35)" }}>🔬 Recherche</span>;
+                    } else if (isPro) {
+                      return <span style={{ padding: "1px 6px", borderRadius: 4, fontSize: "0.68rem", fontWeight: 700, background: "rgba(59, 130, 246, 0.18)", color: "#3b82f6", border: "1px solid rgba(59, 130, 246, 0.35)" }}>💼 Pro</span>;
+                    } else {
+                      return <span style={{ padding: "1px 6px", borderRadius: 4, fontSize: "0.68rem", fontWeight: 700, background: "rgba(16, 185, 129, 0.18)", color: "#10b981", border: "1px solid rgba(16, 185, 129, 0.35)" }}>👤 Perso</span>;
+                    }
+                  })()}
+                  {p.tags.filter(t => !["disposable", "ephemeral", "research", "professional", "personal", "work", "osint"].includes(t)).length > 0 && (
+                    <div className="tags" style={{ display: "inline-flex", margin: 0 }}>
+                      {p.tags.filter(t => !["disposable", "ephemeral", "research", "professional", "personal", "work", "osint"].includes(t)).map((t) => <span key={t}>{t}</span>)}
+                    </div>
+                  )}
+                </div>
               </td>
               {showProject && (
                 <td className="muted nowrap">
@@ -418,6 +439,15 @@ export function ProfileTable({
                 )}
                 {onClone && canEdit && (
                   <IconButton icon="copy" label={t("bp.clone")} disabled={busy} onClick={() => onClone(p)} />
+                )}
+                {onShred && canEdit && (
+                  <IconButton
+                    icon="bolt"
+                    label="Purger"
+                    title="GhostNet Shred : Purger définitivement toutes les données de session"
+                    disabled={busy}
+                    onClick={() => onShred(p)}
+                  />
                 )}
                 {onDelete && canDelete && (
                   <IconButton

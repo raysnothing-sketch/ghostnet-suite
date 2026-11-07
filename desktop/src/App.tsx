@@ -263,6 +263,7 @@ export function App() {
   }, [shell?.agent_ready]);
   const [view, setView] = useState<View>("dashboard");
   const [openOnly, setOpenOnly] = useState(false);
+  const [categoryFilter, setCategoryFilter] = useState<string>("");
   /** A line of information at the top of the window, and — when it is about a
    *  launch — which profile it is about.
    *
@@ -270,6 +271,22 @@ export function App() {
    *  describes cannot get out of step. `forProfile` is null for a notice with
    *  no lifetime: an export that finished, an import that landed. */
   const [notice, setNotice] = useState<{ text: string; forProfile: string | null } | null>(null);
+  const launchDisposableSession = async () => {
+    setBusy(true);
+    try {
+      const res = await api.ghostnetDisposableLaunch();
+      await refreshProfiles();
+      const p = (await api.profiles("local")).find((x) => x.id === res.id);
+      if (p) {
+        await onLaunch(p);
+      }
+    } catch (e) {
+      setError(say(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   /** Which settings tab opens. "Connect a server" in Users means the team
@@ -579,6 +596,14 @@ export function App() {
         (tag === "\u0000none" ? p.tags.length === 0 : p.tags.includes(tag)),
     )
     .filter((p) => stage === "" || (stage === "\u0000none" ? !p.status : (p.status ?? "").trim().toLowerCase() === stage))
+    .filter((p) => {
+      if (!categoryFilter) return true;
+      if (categoryFilter === "disposable") return p.category === "disposable" || p.tags.includes("disposable") || (p.status ?? "").toLowerCase() === "disposable";
+      if (categoryFilter === "research") return p.category === "research" || p.tags.includes("research") || p.tags.includes("osint");
+      if (categoryFilter === "professional") return p.category === "professional" || p.tags.includes("professional") || p.tags.includes("work");
+      if (categoryFilter === "personal") return !p.category || p.category === "personal" || (!p.tags.includes("disposable") && !p.tags.includes("research") && !p.tags.includes("professional"));
+      return true;
+    })
     .filter((p) => !openOnly || p.running);
 
   // Exit sharing over EVERY profile, not the filtered view: the question is
@@ -1339,6 +1364,39 @@ export function App() {
                 {t("bar.openOnly", { n: profiles.filter((p) => p.running).length })}
               </span>
             </label>
+            <Select
+              style={{ width: "auto" }}
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+            >
+              <option value="">Toutes catégories</option>
+              <option value="personal">👤 Personnel</option>
+              <option value="professional">💼 Professionnel</option>
+              <option value="research">🔬 Recherche</option>
+              <option value="disposable">⚡ Jetable</option>
+            </Select>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => void launchDisposableSession()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                padding: "4px 10px",
+                borderRadius: 6,
+                fontWeight: 600,
+                fontSize: "0.78rem",
+                background: "rgba(245, 158, 11, 0.15)",
+                color: "#f59e0b",
+                border: "1px solid rgba(245, 158, 11, 0.4)",
+                cursor: "pointer",
+              }}
+              title="Lancer une session éphémère jetable en 1 clic (détruite à la fermeture)"
+            >
+              <span>⚡</span>
+              <span>Session Jetable</span>
+            </button>
             <div className="spacer" />
             <IconButton
               icon="refresh"
@@ -1750,6 +1808,27 @@ export function App() {
                       if (go === null) return;
                       await api.deleteProfile(p.id, p.origin);
                       await refreshProfiles();
+                })
+              }
+              onShred={
+                (async (p) => {
+                  const go = await ask({
+                    title: "Purger définitivement",
+                    detail: `Attention : toutes les données locales, cookies et traces du profil « ${p.name} » seront définitivement détruites (GhostNet Shred). Cette action est irréversible.`,
+                    confirmLabel: "Purger définitivement",
+                    danger: true,
+                  });
+                  if (go === null) return;
+                  setBusy(true);
+                  try {
+                    await api.ghostnetProfileShred(p.id);
+                    await load();
+                    await refreshProfiles();
+                  } catch (e) {
+                    setError(say(e));
+                  } finally {
+                    setBusy(false);
+                  }
                 })
               }
             />

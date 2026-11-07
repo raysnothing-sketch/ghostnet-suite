@@ -181,6 +181,8 @@ fn main() {
             commands::ghostnet_scan_run,
             commands::ghostnet_killswitch_toggle,
             commands::ghostnet_templates_list,
+            commands::ghostnet_profile_shred,
+            commands::ghostnet_disposable_launch,
             commands::check_proxy,
             commands::diagnose_proxy,
             commands::rotate_proxy,

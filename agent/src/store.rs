@@ -212,6 +212,27 @@ pub struct Profile {
     pub last_opened_at: Option<String>,
 }
 
+impl Profile {
+    /// True when this profile is an ephemeral disposable session.
+    pub fn is_disposable(&self) -> bool {
+        self.tags.iter().any(|t| t == "disposable" || t == "ephemeral")
+            || self.status == "disposable"
+    }
+
+    /// Classification of the profile into GhostNet usage categories.
+    pub fn category(&self) -> &'static str {
+        if self.is_disposable() {
+            "disposable"
+        } else if self.tags.iter().any(|t| t == "research" || t == "osint") {
+            "research"
+        } else if self.tags.iter().any(|t| t == "professional" || t == "work") {
+            "professional"
+        } else {
+            "personal"
+        }
+    }
+}
+
 impl Store {
     pub async fn open(path: &Path) -> anyhow::Result<Self> {
         if let Some(parent) = path.parent() {
@@ -1033,6 +1054,23 @@ impl Store {
             .bind(id)
             .execute(&self.pool)
             .await?;
+        Ok(())
+    }
+
+    /// GhostNet Suite: Completely and unconditionally wipe all traces of a profile:
+    /// remove its directory recursively and delete its credentials and database row.
+    pub async fn wipe_disposable_profile(&self, id: &str, dir: &Path) -> anyhow::Result<()> {
+        if dir.exists() {
+            let _ = std::fs::remove_dir_all(dir);
+        }
+        let _ = sqlx::query("DELETE FROM credentials WHERE profile_id = ?")
+            .bind(id)
+            .execute(&self.pool)
+            .await;
+        let _ = sqlx::query("DELETE FROM profiles WHERE id = ?")
+            .bind(id)
+            .execute(&self.pool)
+            .await;
         Ok(())
     }
 

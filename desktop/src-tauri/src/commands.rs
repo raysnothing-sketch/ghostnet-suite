@@ -4704,3 +4704,13 @@ pub async fn ghostnet_killswitch_toggle(enabled: bool) -> R<serde_json::Value> {
 pub async fn ghostnet_templates_list(os: Option<String>) -> R<serde_json::Value> {
     crate::agent::call("ghostnet.templates.list", serde_json::json!({ "os": os })).await
 }
+
+#[tauri::command]
+pub async fn ghostnet_profile_shred(id: String) -> R<serde_json::Value> {
+    crate::agent::call("ghostnet.profile.shred", serde_json::json!({ "id": id })).await
+}
+
+#[tauri::command]
+pub async fn ghostnet_disposable_launch() -> R<serde_json::Value> {
+    crate::agent::call("ghostnet.disposable.launch", serde_json::json!({})).await
+}
